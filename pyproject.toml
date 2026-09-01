@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffic_ai"
+version = "0.1.0"
+description = "Minimal Traffic-AI simulation (phase 1)"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-q"
