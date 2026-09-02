@@ -1,8 +1,7 @@
-"""Vehicle dynamics simplified for Phase 1"""
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import math
 
 
@@ -18,6 +17,8 @@ class Vehicle:
     completed: bool = False
     waiting_time: float = 0.0
     total_travel_time: float = 0.0
+    # optional override for desired speed (used by higher-level controller)
+    desired_speed_override: Optional[float] = None
 
     def step(self, dt: float, world: object):
         if self.completed:
@@ -34,13 +35,23 @@ class Vehicle:
             self.position = target
             self.route.pop(0)
             return
-        desired_speed = self.max_speed
+        # determine desired speed (allow override from controller/simulator)
+        desired_speed = self.desired_speed_override if self.desired_speed_override is not None else self.max_speed
+        # accelerate or decelerate towards desired_speed
         if self.velocity < desired_speed:
             self.velocity = min(desired_speed, self.velocity + self.accel * dt)
+        elif self.velocity > desired_speed:
+            # simple deceleration using same accel as braking (could be a separate braking parameter)
+            self.velocity = max(desired_speed, self.velocity - self.accel * dt)
+        # move according to current velocity
         move = min(self.velocity * dt, dist)
-        ux = dx / dist
-        uy = dy / dist
+        if dist != 0:
+            ux = dx / dist
+            uy = dy / dist
+        else:
+            ux = uy = 0.0
         self.position = (self.position[0] + ux * move, self.position[1] + uy * move)
+        # update waiting state
         if self.velocity < 0.1:
             self.waiting = True
             self.waiting_time += dt
