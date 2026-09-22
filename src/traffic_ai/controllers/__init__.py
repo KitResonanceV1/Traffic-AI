@@ -6,4 +6,5 @@ from .adaptive import AdaptiveController
 __all__ = [
     "Controller",
     "FixedTimeController",
+    "AdaptiveController",
 ]
