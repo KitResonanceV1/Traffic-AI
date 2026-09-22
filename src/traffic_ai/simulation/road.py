@@ -1,19 +1,27 @@
-"""Road model for Phase 1: simple straight roads"""
+"""Road definitions for the traffic simulation."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Tuple, List
+from math import hypot
+from typing import Tuple
+
+
+Point = Tuple[float, float]
 
 
 @dataclass
 class Road:
-    id: str
-    start: Tuple[float, float]
-    end: Tuple[float, float]
-    length: float = None
+    """A straight road segment connecting two points."""
 
-    def __post_init__(self):
-        if self.length is None:
-            dx = self.end[0] - self.start[0]
-            dy = self.end[1] - self.start[1]
-            self.length = (dx * dx + dy * dy) ** 0.5
+    id: str
+    start: Point
+    end: Point
+
+    @property
+    def length(self) -> float:
+        """Return the geometric length of the road."""
+        return hypot(
+            self.end[0] - self.start[0],
+            self.end[1] - self.start[1],
+        )
