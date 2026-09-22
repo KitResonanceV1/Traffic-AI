@@ -1,28 +1,36 @@
-"""Simple Poisson-like demand generator"""
+"""Traffic demand generation."""
+
 from __future__ import annotations
 
-from typing import List, Tuple
 import random
-import itertools
-from traffic_ai.simulation.vehicle import Vehicle
+from dataclasses import dataclass
 
 
+@dataclass
 class Demand:
-    def __init__(self, spawn_rate: float = 0.2, seed: int = 42):
-        self.spawn_rate = spawn_rate
-        self.random = random.Random(seed)
-        self._id_iter = itertools.count(1)
+    """Generate vehicles according to a configurable arrival rate."""
 
-    def spawn(self, world, dt: float) -> List[Vehicle]:
-        expected = self.spawn_rate * dt
-        vehicles = []
-        if self.random.random() < expected:
-            entry_points = [ (0, 25), (50, 0), (100, 25), (50, 50) ]
-            routes = [ [(100,25)], [(50,50)], [(0,25)], [(50,0)] ]
-            idx = self.random.randrange(len(entry_points))
-            pos = entry_points[idx]
-            route = routes[idx][:]
-            vid = next(self._id_iter)
-            v = Vehicle(id=vid, position=pos, route=route)
-            vehicles.append(v)
-        return vehicles
+    spawn_rate: float = 0.2
+    seed: int = 42
+
+    def __post_init__(self) -> None:
+        if self.spawn_rate < 0:
+            raise ValueError("spawn_rate must not be negative")
+
+        self._random = random.Random(self.seed)
+        self._next_vehicle_id = 1
+
+    def should_spawn(self, dt: float) -> bool:
+        """Return whether a vehicle should arrive during this time step."""
+
+        if dt <= 0:
+            raise ValueError("dt must be greater than 0")
+
+        probability = min(1.0, self.spawn_rate * dt)
+        return self._random.random() < probability
+
+    def next_vehicle_id(self) -> int:
+        """Return a unique vehicle ID."""
+        vehicle_id = self._next_vehicle_id
+        self._next_vehicle_id += 1
+        return vehicle_id
