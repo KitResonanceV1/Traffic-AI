@@ -1,17 +1,38 @@
-"""Fixed-time controller for traffic lights"""
+"""Fixed-time traffic-light controller."""
+
 from __future__ import annotations
 
-class FixedTimeController:
-    def __init__(self, ns_green: float = 30.0, ns_yellow: float = 5.0, all_red: float = 2.0, ew_green: float = 30.0, ew_yellow: float = 5.0):
-        self.durations = {
-            'NS_GREEN': ns_green,
-            'NS_YELLOW': ns_yellow,
-            'ALL_RED': all_red,
-            'EW_GREEN': ew_green,
-            'EW_YELLOW': ew_yellow,
-        }
+from traffic_ai.controllers.base import Controller
 
-    def action_for(self, traffic_light: object) -> str:
-        for k, v in self.durations.items():
-            traffic_light.durations[k] = v
-        return 'KEEP'
+
+class FixedTimeController(Controller):
+    """Baseline controller using predetermined phase durations."""
+
+    def __init__(
+        self,
+        ns_green: float = 30.0,
+        ew_green: float = 30.0,
+        yellow: float = 5.0,
+        all_red: float = 2.0,
+    ) -> None:
+        for name, duration in {
+            "ns_green": ns_green,
+            "ew_green": ew_green,
+            "yellow": yellow,
+            "all_red": all_red,
+        }.items():
+            if duration <= 0:
+                raise ValueError(f"{name} must be greater than 0")
+
+        self.ns_green = ns_green
+        self.ew_green = ew_green
+        self.yellow = yellow
+        self.all_red = all_red
+
+    def action(self, state: object) -> str:
+        """Return the default action.
+
+        The fixed-time controller does not make dynamic decisions.
+        Traffic-light timing is configured when the controller is created.
+        """
+        return "KEEP"
